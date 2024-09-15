@@ -1,0 +1,32 @@
+# Compiled object files
+*.o
+*.obj
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled executables
+*.exe
+
+# CMake build directory
+build/
+
+# Clangd cache directory
+.cache/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+CMakeScripts/
+CMakeLists.txt.user
+
+# Visual Studio Code specific files
+.vscode/
+
+# macOS specific files
+.DS_Store
+
+# Editor backup files
+*~
