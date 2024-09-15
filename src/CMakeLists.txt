@@ -2,8 +2,11 @@ message(
   STATUS "CMakeLists.txt: CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-set(BF3_SOURCES)
+set(BORON_SOURCES ${BORON_SOURCE_DIR}/ByteArray.cpp)
 
-include_directories(${BF3_INCLUDE_DIR})
+include_directories(${BORON_INCLUDE_DIR})
 
-message(STATUS "CMakeLists.txt: BF3_SOURCES: ${BF3_SOURCES}")
+message(STATUS "CMakeLists.txt: BORON_SOURCES: ${BORON_SOURCES}")
+
+add_library(Boron ${BORON_SOURCES})
+target_include_directories(Boron PUBLIC ${BORON_INCLUDE_DIR})
