@@ -8,6 +8,18 @@
 
 #define BORON_NODISCARD [[nodiscard]]
 
+#if __has_cpp_attribute(gnu::malloc)
+#define BORON_MALLOCLIKE [[nodiscard, gnu::malloc]]
+#else
+#define BORON_MALLOCLIKE [[nodiscard]]
+#endif
+
+#ifdef __SIZEOF_POINTER__
+#define BORON_POINTER_SIZE __SIZEOF_POINTER__
+#else
+#define BORON_POINTER_SIZE 8
+#endif
+
 #define BORON_EXPORT
 
 #endif

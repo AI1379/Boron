@@ -2,7 +2,9 @@ message(
   STATUS "CMakeLists.txt: CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-set(BORON_SOURCES ${BORON_SOURCE_DIR}/ByteArray.cpp)
+set(BORON_SOURCES ${BORON_SOURCE_DIR}/ByteArray.cpp
+                  ${BORON_SOURCE_DIR}/ByteArrayAlgorithms.cpp
+                  ${BORON_SOURCE_DIR}/ArrayData.cpp)
 
 include_directories(${BORON_INCLUDE_DIR})
 

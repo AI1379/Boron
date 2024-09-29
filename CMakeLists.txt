@@ -23,9 +23,17 @@ else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
 
+option(BORON_TEST_ENABLED "Enable testing" ON)
+option(BORON_ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic -Werror")
+set(CMAKE_CXX_FLAGS_DEBUG
+    "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic -Werror"
+)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O3")
+if(BORON_ENABLE_ASAN)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fsanitize=address")
+endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(BORON_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,21 +1,26 @@
 #ifndef BORON_INCLUDE_BORON_COMMON_HPP_
 #define BORON_INCLUDE_BORON_COMMON_HPP_
 
+#include <compare>
 #include <cstdint>
 #include <ios>
+#include <iterator>
 #include <string>
 #include <type_traits>
 
 namespace Boron {
 using byte = std::uint8_t;
 template <typename T>
-concept ByteLike = std::is_same_v<T, byte> || std::is_same_v<T, std::int8_t> ||
-                   std::is_same_v<T, std::uint8_t> || std::is_same_v<T, char> ||
-                   std::is_same_v<T, unsigned char>;
+concept ByteLike = std::is_same_v<std::remove_cv_t<T>, byte> ||
+                   std::is_same_v<std::remove_cv_t<T>, std::int8_t> ||
+                   std::is_same_v<std::remove_cv_t<T>, std::uint8_t> ||
+                   std::is_same_v<std::remove_cv_t<T>, unsigned char>;
 
 template <typename T>
-concept CharLike = std::is_same_v<T, char> || std::is_same_v<T, wchar_t> ||
-                   std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
+concept CharLike = std::is_same_v<std::remove_cv_t<T>, char> ||
+                   std::is_same_v<std::remove_cv_t<T>, wchar_t> ||
+                   std::is_same_v<std::remove_cv_t<T>, char16_t> ||
+                   std::is_same_v<std::remove_cv_t<T>, char32_t>;
 
 template <typename T> struct ByteTraits;
 template <CharLike T> struct ByteTraits<T> : std::char_traits<T> {};
@@ -84,6 +89,21 @@ template <ByteLike T> struct ByteTraits<T> {
     return c1 == c2;
   }
 };
+
+inline int orderToInt(std::strong_ordering order) {
+  if (order == std::strong_ordering::less)
+    return -1;
+  if (order == std::strong_ordering::equal)
+    return 0;
+  if (order == std::strong_ordering::greater)
+    return 1;
+  return 2;
+}
+
+template <typename T>
+concept InputIterator =
+    std::is_convertible<typename std::iterator_traits<T>::iterator_category,
+                        std::input_iterator_tag>::value;
 
 } // namespace Boron
 

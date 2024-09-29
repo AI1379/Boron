@@ -64,3 +64,11 @@ TEST(ByteArrayView, FromArray) {
   EXPECT_EQ(view.size(), 4);
   EXPECT_EQ(view[2], 0x03);
 }
+
+TEST(ByteArray, ToByteArray) {
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x03, 0x04};
+  Boron::ByteArrayView view(data, sizeof(data));
+  auto array = view.toByteArray();
+  EXPECT_EQ(array.size(), 4);
+  EXPECT_EQ(array[1], 0x02);
+}
