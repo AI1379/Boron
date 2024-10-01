@@ -1,5 +1,6 @@
 #include "Boron/ByteArray.hpp"
 #include "ByteArrayAlgorithms.hpp"
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -8,19 +9,46 @@ namespace Boron {
 
 ByteArray::ByteArray(const uint8_t *data, size_t size) {
   if (!data) {
-    this->d = DataPointer();
+    this->data_ = Container();
   } else {
     if (size < 0)
       size = strlen(reinterpret_cast<const char *>(data));
     if (!size) {
-      d = DataPointer::fromRawData(data, size);
+      this->data_ = Container();
     } else {
-      d = DataPointer(size, size);
-      assert(d.data() != nullptr);
-      memcpy(d.data(), data, size);
-      d.data()[size] = 0;
+      this->data_ = Container(data, data + size);
     }
   }
+}
+
+// TODO: zero-terminated string
+ByteArray::ByteArray(size_t size, uint8_t ch) {
+  if (size <= 0) {
+    this->data_ = Container();
+  } else {
+    this->data_ = Container(size, ch);
+  }
+}
+
+void ByteArray::resize(size_t size) { this->data_.resize(size); }
+
+void ByteArray::resize(size_t size, uint8_t ch) {
+  this->data_.resize(size, ch);
+}
+
+ByteArray &ByteArray::fill(uint8_t ch, size_t size) {
+  this->resize(size < 0 ? this->size() : size);
+  if (this->size())
+    memset(this->data(), ch, this->size());
+  return *this;
+}
+
+size_t ByteArray::count(uint8_t c) const {
+  return std::count(this->begin(), this->end(), c);
+}
+
+size_t ByteArray::count(ByteArrayView needle) const {
+  return Detail::countByteArray(*this, needle);
 }
 
 size_t ByteArray::indexOf(uint8_t chr, size_t from) const {

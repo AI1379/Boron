@@ -7,6 +7,18 @@
 #include <iterator>
 
 namespace Boron::Detail {
+
+// TODO: Implement countByteArray using Boyer-Moore search
+size_t countByteArray(ByteArrayView haystack, ByteArrayView needle){
+  size_t count = 0;
+  size_t pos = 0;
+  while ((pos = findByteArray(haystack, pos, needle)) != kNotFound) {
+    ++count;
+    pos += needle.size();
+  }
+  return count;
+}
+
 // TODO: Implement Boyer-Moore search
 
 size_t findByte(ByteArrayView haystack, size_t from, uint8_t chr) {
@@ -63,7 +75,7 @@ size_t findByteArray(ByteArrayView haystack, size_t from,
     haystack_hash = haystack_hash * kBase + haystackptr[idx];
     pow_base *= kBase;
   }
-  needle_hash = needle_hash * kBase + needleptr[++idx];
+  needle_hash = needle_hash * kBase + needleptr[idx];
   while (haystackptr <= end) {
     haystack_hash = haystack_hash * kBase + haystackptr[idx];
     if (haystack_hash == needle_hash && *haystackptr == *needleptr) {

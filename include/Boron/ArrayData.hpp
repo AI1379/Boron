@@ -207,6 +207,13 @@ public:
     return {const_cast<T *>(raw_data), nullptr, length};
   }
 
+  size_t freeSpaceAtBegin() const noexcept {
+    if (data_ == nullptr)
+      return 0;
+    return this->ptr -
+           Data::dataStart(data_, alignof(typename Data::AlignmentDummy));
+  }
+
 private:
   T *ptr_;
   ArrayData *data_;

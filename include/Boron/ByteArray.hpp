@@ -194,13 +194,15 @@ private:
 using ByteArrayData = ArrayDataPointer<uint8_t>;
 
 class BORON_EXPORT ByteArray {
-public:
-  using DataPointer = ByteArrayData;
+  // public:
+  // using DataPointer = ByteArrayData;
 
 private:
-  typedef TypedArrayData<uint8_t> Data;
+  using Container = std::vector<byte>;
+  Container data_;
+  // typedef TypedArrayData<uint8_t> Data;
 
-  DataPointer d;
+  // DataPointer d;
   static const uint8_t kEmpty = 0;
 
 public:
@@ -230,11 +232,14 @@ public:
   inline ~ByteArray();
 
   ByteArray &operator=(const ByteArray &) noexcept;
+  // TODO: implement operator= for uint8_t *
   ByteArray &operator=(const uint8_t *str);
   inline ByteArray(ByteArray &&other) noexcept = default;
   // TODO: check why Qt use pure swap
   ByteArray &operator=(ByteArray &&other) noexcept = default;
-  inline void swap(ByteArray &other) noexcept { std::swap(this->d, other.d); }
+  inline void swap(ByteArray &other) noexcept {
+    std::swap(this->data_, other.data_);
+  }
 
   bool isEmpty() const noexcept { return size() == 0; }
   void resize(size_t size);
@@ -242,9 +247,9 @@ public:
 
   ByteArray &fill(uint8_t c, size_t size = -1);
 
-  inline size_t capacity() const;
-  inline void reserve(size_t size);
-  inline void squeeze();
+  inline size_t capacity() const { return this->data_.capacity(); }
+  inline void reserve(size_t size) { return this->data_.reserve(size); }
+  inline void squeeze() { this->data_.shrink_to_fit(); }
 
   inline uint8_t *data();
   inline const uint8_t *data() const noexcept;
@@ -255,7 +260,7 @@ public:
   // inline bool isSharedWith(const ByteArray &other) const noexcept {
   //   return data() == other.data() && size() == other.size();
   // }
-  void clear();
+  inline void clear() { this->data_.clear(); }
 
   inline uint8_t at(size_t i) const;
   inline uint8_t operator[](size_t i) const;
@@ -276,7 +281,6 @@ public:
   inline bool contains(uint8_t c) const;
   inline bool contains(ByteArrayView bv) const;
 
-  // TODO: implement count
   size_t count(uint8_t c) const;
   size_t count(ByteArrayView bv) const;
 
@@ -303,6 +307,7 @@ public:
       return std::move(*this);
     return std::move(*this).last(std::max(n, 0ull));
   }
+  // TODO: mid
   [[nodiscard]] ByteArray mid(size_t index, size_t len = -1) const &;
   [[nodiscard]] ByteArray mid(size_t index, size_t len = -1) &&;
 
@@ -320,7 +325,7 @@ public:
   }
   [[nodiscard]] ByteArray sliced(size_t pos, size_t n) const & {
     verify(pos, n);
-    return ByteArray(d.data() + pos, n);
+    return ByteArray(data_.data() + pos, n);
   }
   [[nodiscard]] ByteArray chopped(size_t len) const & {
     verify(0, len);
@@ -477,82 +482,37 @@ public:
     return ByteArrayView(lhs) <=> ByteArrayView(rhs);
   }
 
-  // friend inline bool operator==(const ByteArray &a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return ByteArrayView(a1) == ByteArrayView(a2);
-  // }
-  // friend inline bool operator==(const ByteArray &a1,
-  //                               const uint8_t *a2) noexcept {
-  //   return ByteArrayView(a1) == ByteArrayView(a2);
-  // }
-  // friend inline bool operator==(const uint8_t *a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return ByteArrayView(a1) == ByteArrayView(a2);
-  // }
-  // friend inline bool operator!=(const ByteArray &a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return !(a1 == a2);
-  // }
-  // friend inline bool operator!=(const ByteArray &a1,
-  //                               const uint8_t *a2) noexcept {
-  //   return ByteArrayView(a1) != ByteArrayView(a2);
-  // }
-  // friend inline bool operator!=(const uint8_t *a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return ByteArrayView(a1) != ByteArrayView(a2);
-  // }
-  // friend inline bool operator<(const ByteArray &a1,
-  //                              const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(ByteArrayView(a1), ByteArrayView(a2)) <
-  //   0;
-  // }
-  // friend inline bool operator<(const ByteArray &a1,
-  //                              const uint8_t *a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) < 0;
-  // }
-  // friend inline bool operator<(const uint8_t *a1,
-  //                              const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) < 0;
-  // }
-  // friend inline bool operator<=(const ByteArray &a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(ByteArrayView(a1), ByteArrayView(a2)) <=
-  //   0;
-  // }
-  // friend inline bool operator<=(const ByteArray &a1,
-  //                               const uint8_t *a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) <= 0;
-  // }
-  // friend inline bool operator<=(const uint8_t *a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) <= 0;
-  // }
-  // friend inline bool operator>(const ByteArray &a1,
-  //                              const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(ByteArrayView(a1), ByteArrayView(a2)) >
-  //   0;
-  // }
-  // friend inline bool operator>(const ByteArray &a1,
-  //                              const uint8_t *a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) > 0;
-  // }
-  // friend inline bool operator>(const uint8_t *a1,
-  //                              const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) > 0;
-  // }
-  // friend inline bool operator>=(const ByteArray &a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(ByteArrayView(a1), ByteArrayView(a2)) >=
-  //   0;
-  // }
-  // friend inline bool operator>=(const ByteArray &a1,
-  //                               const uint8_t *a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) >= 0;
-  // }
-  // friend inline bool operator>=(const uint8_t *a1,
-  //                               const ByteArray &a2) noexcept {
-  //   return QtPrivate::compareMemory(a1, a2) >= 0;
-  // }
+  // TODO: check why clang cannot find operator== and operator!= based on
+  // operator<=> definition
+  [[nodiscard]] friend inline constexpr bool operator==(const ByteArray &lhs,
+                                                        const ByteArray &rhs) {
+    return (lhs <=> rhs) == std::strong_ordering::equal;
+  }
+
+  [[nodiscard]] friend inline constexpr bool operator!=(const ByteArray &lhs,
+                                                        const ByteArray &rhs) {
+    return (lhs <=> rhs) != std::strong_ordering::equal;
+  }
+
+  [[nodiscard]] friend inline constexpr bool operator<(const ByteArray &lhs,
+                                                       const ByteArray &rhs) {
+    return (lhs <=> rhs) == std::strong_ordering::less;
+  }
+
+  [[nodiscard]] friend inline constexpr bool operator<=(const ByteArray &lhs,
+                                                        const ByteArray &rhs) {
+    return (lhs <=> rhs) != std::strong_ordering::greater;
+  }
+
+  [[nodiscard]] friend inline constexpr bool operator>(const ByteArray &lhs,
+                                                       const ByteArray &rhs) {
+    return (lhs <=> rhs) == std::strong_ordering::greater;
+  }
+
+  [[nodiscard]] friend inline constexpr bool operator>=(const ByteArray &lhs,
+                                                        const ByteArray &rhs) {
+    return (lhs <=> rhs) != std::strong_ordering::less;
+  }
 
   // Check isEmpty() instead of isNull() for backwards compatibility.
   friend inline bool operator==(const ByteArray &a1, std::nullptr_t) noexcept {
@@ -652,6 +612,7 @@ public:
   // [[nodiscard]] static ByteArray
   // fromPercentEncoding(const ByteArray &pctEncoded, uint8_t percent = '%');
 
+  // TODO: typedef iterator
   typedef uint8_t *iterator;
   typedef const uint8_t *const_iterator;
   typedef iterator Iterator;
@@ -700,13 +661,13 @@ public:
   static ByteArray fromStdString(const std::string &s);
   std::string toStdString() const;
 
-  inline size_t size() const noexcept { return d.size(); }
+  inline size_t size() const noexcept { return data_.size(); }
   inline size_t length() const noexcept { return size(); }
   inline bool isNull() const noexcept;
 
-  inline const DataPointer &data_ptr() const { return d; }
-  inline DataPointer &data_ptr() { return d; }
-  explicit inline ByteArray(DataPointer &&dd) : d(std::move(dd)) {}
+  // inline const DataPointer &data_ptr() const { return d; }
+  // inline DataPointer &data_ptr() { return d; }
+  // explicit inline ByteArray(DataPointer &&dd) : d(std::move(dd)) {}
 
 private:
   void reallocData(size_t alloc, ArrayData::AllocationOption option);
@@ -716,9 +677,9 @@ private:
   inline constexpr void verify([[maybe_unused]] size_t pos = 0,
                                [[maybe_unused]] size_t n = 1) const {
     assert(pos >= 0);
-    assert(pos <= d.size());
+    assert(pos <= data_.size());
     assert(n >= 0);
-    assert(n <= d.size() - pos);
+    assert(n <= data_.size() - pos);
   }
 
   static ByteArray sliced_helper(ByteArray &a, size_t pos, size_t n);
@@ -752,19 +713,19 @@ inline ByteArray::~ByteArray() {}
 
 inline uint8_t ByteArray::at(size_t i) const {
   verify(i, 1);
-  return d.data()[i];
+  return data_.data()[i];
 }
 inline uint8_t ByteArray::operator[](size_t i) const {
   verify(i, 1);
-  return d.data()[i];
+  return data_.data()[i];
 }
 
 inline uint8_t *ByteArray::data() {
   // detach();
-  assert(d.data());
-  return d.data();
+  assert(data_.data());
+  return data_.data();
 }
-inline const uint8_t *ByteArray::data() const noexcept { return d.data(); }
+inline const uint8_t *ByteArray::data() const noexcept { return data_.data(); }
 // inline void ByteArray::detach() {
 //   if (d->needsDetach())
 //     reallocData(size(), QArrayData::KeepSize);
@@ -782,16 +743,6 @@ inline const uint8_t *ByteArray::data() const noexcept { return d.data(); }
 //   if (d->constAllocatedCapacity())
 //     d->setFlag(Data::CapacityReserved);
 // }
-
-inline void ByteArray::squeeze() {
-  // TODO: complete implementation
-  // if (!d.isMutable())
-  //   return;
-  // if (d->needsDetach() || size() < capacity())
-  //   reallocData(size(), QArrayData::KeepSize);
-  // if (d->constAllocatedCapacity())
-  //   d->clearFlag(Data::CapacityReserved);
-}
 
 inline uint8_t &ByteArray::operator[](size_t i) {
   verify(i, 1);
@@ -838,7 +789,7 @@ inline ByteArray &ByteArray::setNum(float n, uint8_t format, int precision) {
 }
 
 // TODO: check if d.isNull is equvalent to d->isNull
-bool ByteArray::isNull() const noexcept { return d.data() == nullptr; }
+bool ByteArray::isNull() const noexcept { return data_.data() == nullptr; }
 
 // TODO: qCompress
 
