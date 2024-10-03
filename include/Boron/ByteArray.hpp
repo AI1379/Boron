@@ -1,7 +1,6 @@
 #ifndef BORON_INCLUDE_BORON_BYTEARRAY_HPP_
 #define BORON_INCLUDE_BORON_BYTEARRAY_HPP_
 
-#include "Boron/ArrayData.hpp"
 #include "Boron/Common.hpp"
 #include "Boron/Global.hpp"
 
@@ -232,8 +231,6 @@ namespace Boron
     size_type size_;
     const storage_type* data_;
   };
-
-  using ByteArrayData = ArrayDataPointer<uint8_t>;
 
   class BORON_EXPORT ByteArray
   {
@@ -812,8 +809,8 @@ namespace Boron
     // explicit inline ByteArray(DataPointer &&dd) : d(std::move(dd)) {}
 
   private:
-    void reallocData(size_t alloc, ArrayData::AllocationOption option);
-    void reallocGrowData(size_t n);
+    // void reallocData(size_t alloc, ArrayData::AllocationOption option);
+    // void reallocGrowData(size_t n);
     void expand(size_t i);
 
     inline constexpr void verify([[maybe_unused]] size_t pos = 0,

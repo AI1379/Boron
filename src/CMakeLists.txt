@@ -3,8 +3,7 @@ message(
 )
 
 set(BORON_SOURCES ${BORON_SOURCE_DIR}/ByteArray.cpp
-                  ${BORON_SOURCE_DIR}/ByteArrayAlgorithms.cpp
-                  ${BORON_SOURCE_DIR}/ArrayData.cpp)
+    ${BORON_SOURCE_DIR}/ByteArrayAlgorithms.cpp)
 
 include_directories(${BORON_INCLUDE_DIR})
 
