@@ -1,18 +1,18 @@
 #include "Boron/ByteArray.hpp"
-#include "ByteArrayAlgorithms.hpp"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include "ByteArrayAlgorithms.hpp"
 
 namespace Boron {
 
-ByteArray::ByteArray(const uint8_t *data, size_t size) {
+ByteArray::ByteArray(const uint8_t* data, size_t size) {
   if (!data) {
     this->data_ = Container();
   } else {
-    if (size < 0)
-      size = strlen(reinterpret_cast<const char *>(data));
+    if (size == kDetectLength)
+      size = strlen(reinterpret_cast<const char*>(data));
     if (!size) {
       this->data_ = Container();
     } else {
@@ -30,14 +30,16 @@ ByteArray::ByteArray(size_t size, uint8_t ch) {
   }
 }
 
-void ByteArray::resize(size_t size) { this->data_.resize(size); }
+void ByteArray::resize(size_t size) {
+  this->data_.resize(size);
+}
 
 void ByteArray::resize(size_t size, uint8_t ch) {
   this->data_.resize(size, ch);
 }
 
-ByteArray &ByteArray::fill(uint8_t ch, size_t size) {
-  this->resize(size < 0 ? this->size() : size);
+ByteArray& ByteArray::fill(uint8_t ch, size_t size) {
+  this->resize(size == kDetectLength ? this->size() : size);
   if (this->size())
     memset(this->data(), ch, this->size());
   return *this;
@@ -59,4 +61,9 @@ size_t ByteArray::indexOf(ByteArrayView needle, size_t from) const {
   return Detail::findByteArray(*this, from, needle);
 }
 
-} // namespace Boron
+// TODO: check if unnecessary copy is made
+ByteArray ByteArray::sliced_helper(ByteArray& ba, size_t pos, size_t n) {
+  return ba.sliced(pos, n);
+}
+
+}  // namespace Boron

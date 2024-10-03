@@ -12,6 +12,9 @@
 
 # CMake build directory
 build/
+build-release/
+cmake-build-debug/
+cmake-build-release/
 
 # Clangd cache directory
 .cache/
@@ -24,6 +27,9 @@ CMakeLists.txt.user
 
 # Visual Studio Code specific files
 .vscode/
+
+# IDEA specific files
+.idea/
 
 # macOS specific files
 .DS_Store

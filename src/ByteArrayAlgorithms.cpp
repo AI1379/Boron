@@ -9,7 +9,7 @@
 namespace Boron::Detail {
 
 // TODO: Implement countByteArray using Boyer-Moore search
-size_t countByteArray(ByteArrayView haystack, ByteArrayView needle){
+size_t countByteArray(ByteArrayView haystack, ByteArrayView needle) {
   size_t count = 0;
   size_t pos = 0;
   while ((pos = findByteArray(haystack, pos, needle)) != kNotFound) {
@@ -25,10 +25,10 @@ size_t findByte(ByteArrayView haystack, size_t from, uint8_t chr) {
   const auto l = haystack.size();
   if (l == 0)
     return -1;
-  if (from < 0)
-    from += l;
-  if (from < 0)
-    from = 0;
+  // if (from < 0)
+  // from += l;
+  // if (from < 0)
+  // from = 0;
   if (from >= l)
     return -1;
   // TODO: use memchr
@@ -88,4 +88,4 @@ size_t findByteArray(ByteArrayView haystack, size_t from,
   }
   return -1;
 }
-} // namespace Boron::Detail
+}  // namespace Boron::Detail

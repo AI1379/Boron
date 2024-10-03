@@ -1,11 +1,10 @@
-#include "gtest/gtest.h"
 #include <gtest/gtest.h>
 
 #include "Boron/ByteArray.hpp"
 #include "Boron/Common.hpp"
 
 TEST(ByteArrayView, DefaultConstructor) {
-  Boron::ByteArrayView view;
+  const Boron::ByteArrayView view;
   EXPECT_EQ(view.size(), 0);
   EXPECT_EQ(view.data(), nullptr);
 }
@@ -202,4 +201,19 @@ TEST(ByteArray, Compare) {
   EXPECT_NE(ba1, ba3);
   auto ba4 = Boron::ByteArray(data1, 4);
   EXPECT_EQ(ba1, ba4);
+}
+
+TEST(ByteArray, LeftAndRight) {
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x03, 0x04};
+  auto ba = Boron::ByteArray(data, sizeof(data));
+  auto left = ba.left(2);
+  EXPECT_EQ(left.size(), 2);
+  EXPECT_EQ(left[1], 0x02);
+  auto rvref = std::move(ba).left(3);
+  EXPECT_EQ(rvref.size(), 3);
+  EXPECT_EQ(rvref[2], 0x03);
+  EXPECT_EQ(ba.size(), 0);
+  auto right = Boron::ByteArray(data, sizeof(data)).right(2);
+  EXPECT_EQ(right.size(), 2);
+  EXPECT_EQ(right[1], 0x04);
 }
