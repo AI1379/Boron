@@ -298,3 +298,34 @@ TEST(ByteArray, Append)
   EXPECT_EQ(ba3.size(), 5);
   EXPECT_EQ(ba3[4], 0x05);
 }
+
+TEST(ByteArray, StartsWith)
+{
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x03, 0x04};
+  auto ba = Boron::ByteArray(data, sizeof(data));
+  auto needle = Boron::ByteArray(data, 2);
+  EXPECT_TRUE(ba.startsWith(needle));
+  auto needle2 = Boron::ByteArray(data + 1, 2);
+  EXPECT_FALSE(ba.startsWith(needle2));
+}
+
+TEST(ByteArray, EndsWith)
+{
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x03, 0x04};
+  auto ba = Boron::ByteArray(data, sizeof(data));
+  auto needle = Boron::ByteArray(data + 2, 2);
+  EXPECT_TRUE(ba.endsWith(needle));
+  auto needle2 = Boron::ByteArray(data + 1, 2);
+  EXPECT_FALSE(ba.endsWith(needle2));
+}
+
+TEST(ByteArray, Split)
+{
+  constexpr const Boron::byte data[] = {0x01,0x02,0x00,0x01,0x02,0x03,0x00,0x00,0x00,0x01};
+  auto ba = Boron::ByteArray(data, sizeof(data));
+  auto split = ba.split(0x00);
+  EXPECT_EQ(split.size(), 3);
+  EXPECT_EQ(split[0].size(), 2);
+  EXPECT_EQ(split[1].size(), 3);
+  EXPECT_EQ(split[2].size(), 1);
+}

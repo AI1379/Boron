@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <bit>
 
 namespace Boron
 {
@@ -785,14 +786,18 @@ namespace Boron
                                 uint8_t percent = '%') const;
     [[nodiscard]] ByteArray percentDecoded(uint8_t percent = '%') const;
 
-    inline ByteArray& setNum(short, int base = 10);
-    inline ByteArray& setNum(unsigned short, int base = 10);
-    inline ByteArray& setNum(int, int base = 10);
-    inline ByteArray& setNum(unsigned int, int base = 10);
-    inline ByteArray& setNum(long, int base = 10);
-    inline ByteArray& setNum(unsigned long, int base = 10);
-    ByteArray& setNum(long long, int base = 10);
-    ByteArray& setNum(unsigned long long, int base = 10);
+    inline ByteArray& setNum(short, std::endian endian);
+    inline ByteArray& setNum(unsigned short, std::endian endian);
+    inline ByteArray& setNum(int, std::endian endian);
+    inline ByteArray& setNum(unsigned int, std::endian endian);
+    inline ByteArray& setNum(long, std::endian endian);
+    inline ByteArray& setNum(unsigned long, std::endian endian);
+    // TODO: the design of setNum in Qt makes no sense. It should return a ByteArray with the number in it in proper endianess
+    ByteArray& setNum(long long, std::endian endian);
+    ByteArray& setNum(unsigned long long, std::endian endian);
+#if BORON_ENABLE_GMP
+    // TODO: implement setNum for mpz_class
+#endif
     inline ByteArray& setNum(float, uint8_t format = 'g', int precision = 6);
     ByteArray& setNum(double, uint8_t format = 'g', int precision = 6);
     ByteArray& setRawData(const uint8_t* a, size_t n);
@@ -1009,39 +1014,40 @@ namespace Boron
     return orderToInt(ByteArrayView(*this) <=> a);
   }
 
-  inline ByteArray& ByteArray::setNum(short n, int base)
+  // TODO: refactor this using template
+  inline ByteArray& ByteArray::setNum(short n, std::endian endian)
   {
-    return setNum((long long)(n), base);
+    return setNum(static_cast<long long>(n), endian);
   }
 
-  inline ByteArray& ByteArray::setNum(unsigned short n, int base)
+  inline ByteArray& ByteArray::setNum(unsigned short n, std::endian endian)
   {
-    return setNum((unsigned long long)(n), base);
+    return setNum(static_cast<unsigned long long>(n), endian);
   }
 
-  inline ByteArray& ByteArray::setNum(int n, int base)
+  inline ByteArray& ByteArray::setNum(int n, std::endian endian)
   {
-    return setNum((long long)(n), base);
+    return setNum(static_cast<long long>(n), endian);
   }
 
-  inline ByteArray& ByteArray::setNum(unsigned int n, int base)
+  inline ByteArray& ByteArray::setNum(unsigned int n, std::endian endian)
   {
-    return setNum((unsigned long long)(n), base);
+    return setNum(static_cast<unsigned long long>(n), endian);
   }
 
-  inline ByteArray& ByteArray::setNum(long n, int base)
+  inline ByteArray& ByteArray::setNum(long n, std::endian endian)
   {
-    return setNum((long long)(n), base);
+    return setNum(static_cast<long long>(n), endian);
   }
 
-  inline ByteArray& ByteArray::setNum(unsigned long n, int base)
+  inline ByteArray& ByteArray::setNum(unsigned long n, std::endian endian)
   {
-    return setNum((unsigned long long)(n), base);
+    return setNum(static_cast<unsigned long long>(n), endian);
   }
 
   inline ByteArray& ByteArray::setNum(float n, uint8_t format, int precision)
   {
-    return setNum(double(n), format, precision);
+    return setNum(static_cast<double>(n), format, precision);
   }
 
   // TODO: check if d.isNull is equvalent to d->isNull

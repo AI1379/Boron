@@ -123,12 +123,13 @@ namespace Boron
     return true;
   }
 
+  // TODO: try to optimize this
   std::vector<ByteArray> ByteArray::split(uint8_t sep) const
   {
     std::vector<ByteArray> result;
-    for(auto it = this->begin(), last = this->begin(); it != this->end(); ++it)
+    for (auto it = this->begin(), last = this->begin(); it != this->end(); ++it)
     {
-      if (*it == sep)
+      if (*it == sep && it != last)
       {
         result.emplace_back(last, it);
         last = it + 1;
@@ -137,6 +138,14 @@ namespace Boron
     return result;
   }
 
+  ByteArray ByteArray::repeated(size_t times) const
+  {
+    ByteArray result;
+    result.data_.resize(this->size() * times);
+    for (auto i = 0_sz; i < times; i++)
+      memcpy(result.data_.data() + i * this->size(), this->data_.data(), this->size());
+    return result;
+  }
 
 
 } // namespace Boron

@@ -2,6 +2,7 @@
 #define BORON_INCLUDE_BORON_COMMON_HPP_
 
 #include <compare>
+#include <concepts>
 #include <cstdint>
 #include <ios>
 #include <iterator>
@@ -143,8 +144,8 @@ namespace Boron
                         std::input_iterator_tag>::value;
 
   inline size_t operator""_sz(unsigned long long n) { return static_cast<size_t>(n); }
-  inline ptrdiff_t operator""_diff(unsigned long long n) { return static_cast<ptrdiff_t>(n); }
 
+  inline ptrdiff_t operator""_diff(unsigned long long n) { return static_cast<ptrdiff_t>(n); }
 } // namespace Boron
 
 #endif
