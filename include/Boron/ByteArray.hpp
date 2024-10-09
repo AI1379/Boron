@@ -719,116 +719,72 @@ namespace Boron
       return !a1.isEmpty();
     }
 
-    friend inline bool operator<(const ByteArray&, std::nullptr_t) noexcept
-    {
-      return false;
-    }
 
-    friend inline bool operator>(const ByteArray& a1, std::nullptr_t) noexcept
-    {
-      return !a1.isEmpty();
-    }
-
-    friend inline bool operator<=(const ByteArray& a1, std::nullptr_t) noexcept
-    {
-      return a1.isEmpty();
-    }
-
-    friend inline bool operator>=(const ByteArray&, std::nullptr_t) noexcept
-    {
-      return true;
-    }
-
-    friend inline bool operator==(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 == nullptr;
-    }
-
-    friend inline bool operator!=(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 != nullptr;
-    }
-
-    friend inline bool operator<(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 > nullptr;
-    }
-
-    friend inline bool operator>(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 < nullptr;
-    }
-
-    friend inline bool operator<=(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 >= nullptr;
-    }
-
-    friend inline bool operator>=(std::nullptr_t, const ByteArray& a2) noexcept
-    {
-      return a2 <= nullptr;
-    }
-
-    short toShort(bool* ok = nullptr, int base = 10) const;
-    unsigned short toUShort(bool* ok = nullptr, int base = 10) const;
-    int toInt(bool* ok = nullptr, int base = 10) const;
-    unsigned int toUInt(bool* ok = nullptr, int base = 10) const;
-    long toLong(bool* ok = nullptr, int base = 10) const;
-    unsigned long toULong(bool* ok = nullptr, int base = 10) const;
-    long long toLongLong(bool* ok = nullptr, int base = 10) const;
-    unsigned long long toULongLong(bool* ok = nullptr, int base = 10) const;
-    float toFloat(bool* ok = nullptr) const;
-    double toDouble(bool* ok = nullptr) const;
+    // short toShort(bool* ok = nullptr, int base = 10) const;
+    // unsigned short toUShort(bool* ok = nullptr, int base = 10) const;
+    // int toInt(bool* ok = nullptr, int base = 10) const;
+    // unsigned int toUInt(bool* ok = nullptr, int base = 10) const;
+    // long toLong(bool* ok = nullptr, int base = 10) const;
+    // unsigned long toULong(bool* ok = nullptr, int base = 10) const;
+    // long long toLongLong(bool* ok = nullptr, int base = 10) const;
+    // unsigned long long toULongLong(bool* ok = nullptr, int base = 10) const;
+    // float toFloat(bool* ok = nullptr) const;
+    // double toDouble(bool* ok = nullptr) const;
     // ByteArray toBase64(Base64Options options = Base64Encoding) const;
-    ByteArray toHex(uint8_t separator = '\0') const;
-    ByteArray toPercentEncoding(const ByteArray& exclude = ByteArray(),
-                                const ByteArray& include = ByteArray(),
-                                uint8_t percent = '%') const;
+    // TODO: implement Boron::String
+    std::string toHex(uint8_t separator = '\0') const;
+    std::string toPercentEncoding(const ByteArray& exclude = ByteArray(),
+                                  const ByteArray& include = ByteArray(),
+                                  uint8_t percent = '%') const;
     [[nodiscard]] ByteArray percentDecoded(uint8_t percent = '%') const;
 
-    inline ByteArray& setNum(short, std::endian endian);
-    inline ByteArray& setNum(unsigned short, std::endian endian);
-    inline ByteArray& setNum(int, std::endian endian);
-    inline ByteArray& setNum(unsigned int, std::endian endian);
-    inline ByteArray& setNum(long, std::endian endian);
-    inline ByteArray& setNum(unsigned long, std::endian endian);
-    // TODO: the design of setNum in Qt makes no sense. It should return a ByteArray with the number in it in proper endianess
-    ByteArray& setNum(long long, std::endian endian);
-    ByteArray& setNum(unsigned long long, std::endian endian);
+    // inline ByteArray& setNum(short, std::endian endian);
+    // inline ByteArray& setNum(unsigned short, std::endian endian);
+    // inline ByteArray& setNum(int, std::endian endian);
+    // inline ByteArray& setNum(unsigned int, std::endian endian);
+    // inline ByteArray& setNum(long, std::endian endian);
+    // inline ByteArray& setNum(unsigned long, std::endian endian);
+    // TODO: the design of setNum in Qt makes no sense. It should return a ByteArray with the number in it in proper endianness
+    template <std::integral T>
+    inline ByteArray& setNum(T number, std::endian endian)
+    {
+      if constexpr (std::is_signed_v<T>)
+      {
+        setNum_helper(static_cast<unsigned long long>(number), endian);
+      }
+      else
+      {
+        setNum_helper(static_cast<long long>(number), endian);
+      }
+      return *this;
+    }
+
+    // ByteArray& setNum(long long, std::endian endian);
+    // ByteArray& setNum(unsigned long long, std::endian endian);
 #if BORON_ENABLE_GMP
     // TODO: implement setNum for mpz_class
 #endif
+    // TODO: setNum for float and double
     inline ByteArray& setNum(float, uint8_t format = 'g', int precision = 6);
     ByteArray& setNum(double, uint8_t format = 'g', int precision = 6);
     ByteArray& setRawData(const uint8_t* a, size_t n);
 
-    [[nodiscard]] static ByteArray number(int, int base = 10);
-    [[nodiscard]] static ByteArray number(unsigned int, int base = 10);
-    [[nodiscard]] static ByteArray number(long, int base = 10);
-    [[nodiscard]] static ByteArray number(unsigned long, int base = 10);
-    [[nodiscard]] static ByteArray number(long long, int base = 10);
-    [[nodiscard]] static ByteArray number(unsigned long long, int base = 10);
-    [[nodiscard]] static ByteArray number(double, uint8_t format = 'g',
-                                          int precision = 6);
+    // [[nodiscard]] static ByteArray number(int, int base = 10);
+    // [[nodiscard]] static ByteArray number(unsigned int, int base = 10);
+    // [[nodiscard]] static ByteArray number(long, int base = 10);
+    // [[nodiscard]] static ByteArray number(unsigned long, int base = 10);
+    // [[nodiscard]] static ByteArray number(long long, int base = 10);
+    // [[nodiscard]] static ByteArray number(unsigned long long, int base = 10);
+    // [[nodiscard]] static ByteArray number(double, uint8_t format = 'g',
+    //                                       int precision = 6);
 
     [[nodiscard]] static ByteArray fromRawData(const uint8_t* data, size_t size)
     {
-      return ByteArray(const_cast<uint8_t*>(data), size);
-      // return ByteArray(DataPointer(nullptr, const_cast<uint8_t *>(data),
-      // size));
+      return {const_cast<uint8_t*>(data), size};
     }
 
     // TODO: redesign Base64
-    // class FromBase64Result;
-    // [[nodiscard]] static FromBase64Result
-    // fromBase64Encoding(ByteArray &&base64,
-    //                    Base64Options options = Base64Encoding);
-    // [[nodiscard]] static FromBase64Result
-    // fromBase64Encoding(const ByteArray &base64,
-    //                    Base64Options options = Base64Encoding);
-    // [[nodiscard]] static ByteArray
-    // fromBase64(const ByteArray &base64, Base64Options options =
-    // Base64Encoding);
+    // TODO: implement fromHex
     [[nodiscard]] static ByteArray fromHex(const ByteArray& hexEncoded);
     // TODO: implement fromPercentEncoding
     // [[nodiscard]] static ByteArray
@@ -890,6 +846,9 @@ namespace Boron
     // explicit inline ByteArray(DataPointer &&dd) : d(std::move(dd)) {}
 
   private:
+    static ByteArray setNum_helper(unsigned long long, std::endian);
+    static ByteArray setNum_helper(long long, std::endian);
+
     // void reallocData(size_t alloc, ArrayData::AllocationOption option);
     // void reallocGrowData(size_t n);
     void expand(size_t i);
@@ -1012,42 +971,6 @@ namespace Boron
   inline int ByteArray::compare(ByteArrayView a) const noexcept
   {
     return orderToInt(ByteArrayView(*this) <=> a);
-  }
-
-  // TODO: refactor this using template
-  inline ByteArray& ByteArray::setNum(short n, std::endian endian)
-  {
-    return setNum(static_cast<long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(unsigned short n, std::endian endian)
-  {
-    return setNum(static_cast<unsigned long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(int n, std::endian endian)
-  {
-    return setNum(static_cast<long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(unsigned int n, std::endian endian)
-  {
-    return setNum(static_cast<unsigned long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(long n, std::endian endian)
-  {
-    return setNum(static_cast<long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(unsigned long n, std::endian endian)
-  {
-    return setNum(static_cast<unsigned long long>(n), endian);
-  }
-
-  inline ByteArray& ByteArray::setNum(float n, uint8_t format, int precision)
-  {
-    return setNum(static_cast<double>(n), format, precision);
   }
 
   // TODO: check if d.isNull is equvalent to d->isNull
