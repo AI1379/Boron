@@ -732,7 +732,7 @@ namespace Boron
     // double toDouble(bool* ok = nullptr) const;
     // ByteArray toBase64(Base64Options options = Base64Encoding) const;
     // TODO: implement Boron::String
-    std::string toHex(uint8_t separator = '\0') const;
+    std::string toHex(char separator = '\0') const;
     std::string toPercentEncoding(const ByteArray& exclude = ByteArray(),
                                   const ByteArray& include = ByteArray(),
                                   uint8_t percent = '%') const;
@@ -767,6 +767,7 @@ namespace Boron
     // TODO: setNum for float and double
     inline ByteArray& setNum(float, uint8_t format = 'g', int precision = 6);
     ByteArray& setNum(double, uint8_t format = 'g', int precision = 6);
+    // To re-use existed ByteArray to save memory re-allocations.
     ByteArray& setRawData(const uint8_t* a, size_t n);
 
     // [[nodiscard]] static ByteArray number(int, int base = 10);
@@ -787,8 +788,8 @@ namespace Boron
     // TODO: implement fromHex
     [[nodiscard]] static ByteArray fromHex(const ByteArray& hexEncoded);
     // TODO: implement fromPercentEncoding
-    // [[nodiscard]] static ByteArray
-    // fromPercentEncoding(const ByteArray &pctEncoded, uint8_t percent = '%');
+    [[nodiscard]] static ByteArray
+    fromPercentEncoding(const ByteArray& pctEncoded, uint8_t percent = '%');
 
     // TODO: typedef iterator
     typedef uint8_t* iterator;
@@ -833,13 +834,14 @@ namespace Boron
     void shrink_to_fit() { squeeze(); }
     iterator erase(const_iterator first, const_iterator last);
     inline iterator erase(const_iterator it) { return erase(it, it + 1); }
+    inline bool empty() const { return data_.empty(); }
 
     static ByteArray fromStdString(const std::string& s);
     std::string toStdString() const;
 
     inline size_t size() const noexcept { return data_.size(); }
     inline size_t length() const noexcept { return size(); }
-    inline bool isNull() const noexcept;
+    inline bool isNull() const noexcept { return data_.empty(); }
 
     // inline const DataPointer &data_ptr() const { return d; }
     // inline DataPointer &data_ptr() { return d; }
@@ -971,12 +973,6 @@ namespace Boron
   inline int ByteArray::compare(ByteArrayView a) const noexcept
   {
     return orderToInt(ByteArrayView(*this) <=> a);
-  }
-
-  // TODO: check if d.isNull is equvalent to d->isNull
-  bool ByteArray::isNull() const noexcept
-  {
-    return data_.data() == nullptr;
   }
 
   // TODO: qCompress

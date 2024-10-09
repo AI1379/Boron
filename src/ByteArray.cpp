@@ -147,5 +147,44 @@ namespace Boron
     return result;
   }
 
+  ByteArray& ByteArray::setRawData(const uint8_t* a, size_t n)
+  {
+    this->data_.reserve(n);
+    memcpy(this->data_.data(), a, n);
+    return *this;
+  }
+
+  ByteArray ByteArray::fromStdString(const std::string& s)
+  {
+    return fromRawData(reinterpret_cast<const uint8_t*>(s.data()), s.size());
+  }
+
+  std::string ByteArray::toStdString() const
+  {
+    return {reinterpret_cast<const char*>(this->data_.data()), this->data_.size()};
+  }
+
+  std::string ByteArray::toHex(char separator) const
+  {
+    static constexpr const char kHexChars[] = "0123456789ABCDEF";
+    std::string result;
+    auto res_size = this->size() * (separator == '\0' ? 2 : 3);
+    result.reserve(res_size);
+    for (auto i = 0_sz; i < this->size(); i++)
+    {
+      result.push_back(kHexChars[this->data_[i] >> 4]);
+      result.push_back(kHexChars[this->data_[i] & 0x0F]);
+      if (separator)
+        result.push_back(separator);
+    }
+    return result;
+  }
+
+  ByteArray ByteArray::fromHex(const ByteArray& hexEncoded)
+  {
+
+  }
+
+
 
 } // namespace Boron

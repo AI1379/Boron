@@ -329,3 +329,22 @@ TEST(ByteArray, Split)
   EXPECT_EQ(split[1].size(), 3);
   EXPECT_EQ(split[2].size(), 1);
 }
+
+TEST(ByteArray, Repeated)
+{
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x03};
+  auto ba = Boron::ByteArray(data, sizeof(data));
+  auto repeated = ba.repeated(3);
+  EXPECT_EQ(repeated.size(), 9);
+  EXPECT_EQ(repeated[8], 0x03);
+}
+
+TEST(ByteArray, StdString)
+{
+  std::string str = "Hello, World!";
+  auto ba = Boron::ByteArray::fromStdString(str);
+  EXPECT_EQ(ba.size(), str.size());
+  EXPECT_EQ(ba[7], static_cast<uint8_t>('W'));
+  auto str2 = ba.toStdString();
+  EXPECT_EQ(str, str2);
+}
