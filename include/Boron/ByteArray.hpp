@@ -750,11 +750,11 @@ namespace Boron
     {
       if constexpr (std::is_signed_v<T>)
       {
-        setNum_helper(static_cast<unsigned long long>(number), endian);
+        setNum_helper(static_cast<unsigned long long>(number), endian, sizeof(T));
       }
       else
       {
-        setNum_helper(static_cast<long long>(number), endian);
+        setNum_helper(static_cast<long long>(number), endian, sizeof(T));
       }
       return *this;
     }
@@ -786,7 +786,8 @@ namespace Boron
 
     // TODO: redesign Base64
     // TODO: implement fromHex
-    [[nodiscard]] static ByteArray fromHex(const ByteArray& hexEncoded);
+    // TODO: String
+    [[nodiscard]] static ByteArray fromHex(const std::string& hexEncoded);
     // TODO: implement fromPercentEncoding
     [[nodiscard]] static ByteArray
     fromPercentEncoding(const ByteArray& pctEncoded, uint8_t percent = '%');
@@ -843,16 +844,10 @@ namespace Boron
     inline size_t length() const noexcept { return size(); }
     inline bool isNull() const noexcept { return data_.empty(); }
 
-    // inline const DataPointer &data_ptr() const { return d; }
-    // inline DataPointer &data_ptr() { return d; }
-    // explicit inline ByteArray(DataPointer &&dd) : d(std::move(dd)) {}
-
   private:
-    static ByteArray setNum_helper(unsigned long long, std::endian);
-    static ByteArray setNum_helper(long long, std::endian);
+    static ByteArray setNum_helper(unsigned long long, std::endian, size_t);
+    static ByteArray setNum_helper(long long, std::endian, size_t);
 
-    // void reallocData(size_t alloc, ArrayData::AllocationOption option);
-    // void reallocGrowData(size_t n);
     void expand(size_t i);
 
     inline void verify([[maybe_unused]] size_t pos = 0,

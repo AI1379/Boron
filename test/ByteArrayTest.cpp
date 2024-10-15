@@ -321,7 +321,7 @@ TEST(ByteArray, EndsWith)
 
 TEST(ByteArray, Split)
 {
-  constexpr const Boron::byte data[] = {0x01,0x02,0x00,0x01,0x02,0x03,0x00,0x00,0x00,0x01};
+  constexpr const Boron::byte data[] = {0x01, 0x02, 0x00, 0x01, 0x02, 0x03, 0x00, 0x00, 0x00, 0x01};
   auto ba = Boron::ByteArray(data, sizeof(data));
   auto split = ba.split(0x00);
   EXPECT_EQ(split.size(), 3);
@@ -347,4 +347,19 @@ TEST(ByteArray, StdString)
   EXPECT_EQ(ba[7], static_cast<uint8_t>('W'));
   auto str2 = ba.toStdString();
   EXPECT_EQ(str, str2);
+}
+
+TEST(ByteArray, HexEncodeAndDecode)
+{
+  std::string raw_ba = "Yoimiya!";
+  auto ba = Boron::ByteArray::fromStdString(raw_ba);
+  auto hex = ba.toHex();
+  EXPECT_EQ(hex, "596F696D69796121");
+  auto ba2 = Boron::ByteArray::fromHex(hex);
+  auto raw_ba2 = ba2.toStdString();
+  EXPECT_EQ(raw_ba, raw_ba2);
+  auto hex2 = ba2.toHex(':');
+  EXPECT_EQ(hex2, "59:6F:69:6D:69:79:61:21");
+  auto death = "96F696D69796121";
+  EXPECT_DEATH(ba = Boron::ByteArray::fromHex(death), ".*");
 }
