@@ -94,7 +94,7 @@ namespace Boron
     }
 
     template <ByteLike Byte>
-    constexpr ByteArrayView(const Byte* data)
+    constexpr explicit ByteArrayView(const Byte* data)
       : size_(ByteTraits<Byte>::length(data)), data_(castHelper(data))
     {
     }
@@ -119,7 +119,7 @@ namespace Boron
 
     // BORON_NODISCARD static ByteArray
     // toByteArray(const ByteArrayView &view); // TODO: Implement
-    [[nodiscard]] ByteArray toByteArray() const;
+    BORON_NODISCARD ByteArray toByteArray() const;
 
     ByteArrayView(const ByteArrayView& other) = default;
     ByteArrayView(ByteArrayView&& other) noexcept = default;
@@ -169,7 +169,7 @@ namespace Boron
     BORON_NODISCARD constexpr ByteArrayView sliced(size_t pos, size_t n) const
     {
       verify(pos, n);
-      return ByteArrayView(data_ + pos, n);
+      return {data_ + pos, n};
     }
 
     BORON_NODISCARD String toString() const;
@@ -187,45 +187,14 @@ namespace Boron
           return ret <=> 0;
       }
 
-      return lhs.size() == rhs.size()
-               ? std::strong_ordering::equal
-               : lhs.size() <=> rhs.size();
+      return lhs.size() <=> rhs.size();
     }
 
-    friend inline constexpr bool operator==(const ByteArrayView& lhs,
-                                            const ByteArrayView& rhs)
+    BORON_NODISCARD friend inline constexpr auto operator==(const ByteArrayView& lhs, const ByteArrayView& rhs)
     {
-      return (lhs <=> rhs) == std::strong_ordering::equal;
-    }
-
-    friend inline constexpr bool operator!=(const ByteArrayView& lhs,
-                                            const ByteArrayView& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::equal;
-    }
-
-    friend inline constexpr bool operator<(const ByteArrayView& lhs,
-                                           const ByteArrayView& rhs)
-    {
-      return (lhs <=> rhs) == std::strong_ordering::less;
-    }
-
-    friend inline constexpr bool operator<=(const ByteArrayView& lhs,
-                                            const ByteArrayView& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::greater;
-    }
-
-    friend inline constexpr bool operator>(const ByteArrayView& lhs,
-                                           const ByteArrayView& rhs)
-    {
-      return (lhs <=> rhs) == std::strong_ordering::greater;
-    }
-
-    friend inline constexpr bool operator>=(const ByteArrayView& lhs,
-                                            const ByteArrayView& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::less;
+      if (lhs.size() != rhs.size()) return false;
+      // TODO: check if memcmp is the best way to compare
+      return std::equal(lhs.begin(), lhs.end(), rhs.begin());
     }
 
   private:
@@ -236,16 +205,11 @@ namespace Boron
   // TODO: add range-based api
   class BORON_EXPORT ByteArray
   {
-    // public:
-    // using DataPointer = ByteArrayData;
-
   private:
     using Container = std::vector<byte>;
     Container data_;
-    // typedef TypedArrayData<uint8_t> Data;
 
-    // DataPointer d;
-    static const uint8_t kEmpty = 0;
+    static constexpr uint8_t kEmpty = 0;
 
   public:
     using storage_type = byte;
@@ -258,29 +222,11 @@ namespace Boron
     using const_pointer = const storage_type*;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reverse_interator = std::reverse_iterator<iterator>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     static constexpr const size_t kNpos = -1;
     static constexpr const size_t kDetectLength = -1;
-    // enum Base64Option {
-    //   Base64Encoding = 0,
-    //   Base64UrlEncoding = 1,
-
-    //   KeepTrailingEquals = 0,
-    //   OmitTrailingEquals = 2,
-
-    //   IgnoreBase64DecodingErrors = 0,
-    //   AbortOnBase64DecodingErrors = 4,
-    // };
-    // using Base64Options = uint8_t;
-
-    // enum class Base64DecodingStatus {
-    //   Ok,
-    //   IllegalInputLength,
-    //   IllegalCharacter,
-    //   IllegalPadding,
-    // };
 
     inline ByteArray() noexcept;
 
@@ -306,157 +252,150 @@ namespace Boron
       std::swap(this->data_, other.data_);
     }
 
-    bool isEmpty() const noexcept { return size() == 0; }
+    BORON_NODISCARD bool isEmpty() const noexcept { return size() == 0; }
     void resize(size_t size);
     void resize(size_t size, uint8_t c);
 
     ByteArray& fill(uint8_t c, size_t size = -1);
 
-    inline size_t capacity() const { return this->data_.capacity(); }
+    BORON_NODISCARD inline size_t capacity() const { return this->data_.capacity(); }
     inline void reserve(size_t size) { return this->data_.reserve(size); }
     inline void squeeze() { this->data_.shrink_to_fit(); }
 
     inline uint8_t* data();
-    inline const uint8_t* data() const noexcept;
-    const uint8_t* constData() const noexcept { return data(); }
-    // TODO: implement Detail::detach
-    // inline void detach();
-    // inline bool isDetached() const;
-    // inline bool isSharedWith(const ByteArray &other) const noexcept {
-    //   return data() == other.data() && size() == other.size();
-    // }
-    inline void clear() { this->data_.clear(); }
+    BORON_NODISCARD inline const uint8_t* data() const noexcept;
+    BORON_NODISCARD const uint8_t* constData() const noexcept { return data(); }
+    void clear() { this->data_.clear(); }
 
-    inline uint8_t at(size_t i) const;
+    BORON_NODISCARD inline uint8_t at(size_t i) const;
     inline uint8_t operator[](size_t i) const;
-    [[nodiscard]] inline uint8_t& operator[](size_t i);
-    [[nodiscard]] uint8_t front() const { return at(0); }
-    [[nodiscard]] inline uint8_t& front();
-    [[nodiscard]] uint8_t back() const { return at(size() - 1); }
-    [[nodiscard]] inline uint8_t& back();
+    BORON_NODISCARD inline uint8_t& operator[](size_t i);
+    BORON_NODISCARD uint8_t front() const { return at(0); }
+    BORON_NODISCARD inline uint8_t& front();
+    BORON_NODISCARD uint8_t back() const { return at(size() - 1); }
+    BORON_NODISCARD inline uint8_t& back();
 
-    size_t indexOf(uint8_t c, size_t from = 0) const;
-    size_t indexOf(ByteArrayView bv, size_t from = 0) const;
+    BORON_NODISCARD size_t indexOf(uint8_t c, size_t from = 0) const;
+    BORON_NODISCARD size_t indexOf(ByteArrayView bv, size_t from = 0) const;
 
     // TODO: implement Detail::findLastByte and Detail::findLastByteArray
-    size_t lastIndexOf(uint8_t c, size_t from = -1) const;
-    size_t lastIndexOf(ByteArrayView bv) const;
-    size_t lastIndexOf(ByteArrayView bv, size_t from) const;
+    BORON_NODISCARD size_t lastIndexOf(uint8_t c, size_t from = -1) const;
+    BORON_NODISCARD size_t lastIndexOf(ByteArrayView bv) const;
+    BORON_NODISCARD size_t lastIndexOf(ByteArrayView bv, size_t from) const;
 
-    inline bool contains(uint8_t c) const;
-    inline bool contains(ByteArrayView bv) const;
+    BORON_NODISCARD inline bool contains(uint8_t c) const;
+    BORON_NODISCARD inline bool contains(ByteArrayView bv) const;
 
-    size_t count(uint8_t c) const;
-    size_t count(ByteArrayView bv) const;
+    BORON_NODISCARD size_t count(uint8_t c) const;
+    BORON_NODISCARD size_t count(ByteArrayView bv) const;
 
-    // TODO: implement compare
-    inline int compare(ByteArrayView a) const noexcept;
+    BORON_NODISCARD inline int compare(ByteArrayView a) const noexcept;
 
-    [[nodiscard]] ByteArray left(size_t n) const &
+    BORON_NODISCARD ByteArray left(size_t n) const &
     {
       if (n >= size())
         return *this;
-      return first(std::max(n, (size_t)(0)));
+      return first(std::max(n, 0_sz));
     }
 
-    [[nodiscard]] ByteArray left(size_t n) &&
+    BORON_NODISCARD ByteArray left(size_t n) &&
     {
       if (n >= size())
         return std::move(*this);
-      return std::move(*this).first(std::max(n, (size_t)(0)));
+      return std::move(*this).first(std::max(n, 0_sz));
     }
 
-    [[nodiscard]] ByteArray right(size_t n) const &
+    BORON_NODISCARD ByteArray right(size_t n) const &
     {
       if (n >= size())
         return *this;
-      return last(std::max(n, (size_t)(0)));
+      return last(std::max(n, 0_sz));
     }
 
-    [[nodiscard]] ByteArray right(size_t n) &&
+    BORON_NODISCARD ByteArray right(size_t n) &&
     {
       if (n >= size())
         return std::move(*this);
-      return std::move(*this).last(std::max(n, (size_t)(0)));
+      return std::move(*this).last(std::max(n, 0_sz));
     }
 
     // TODO: mid
-    [[nodiscard]] ByteArray mid(size_t index, size_t len = -1) const &;
-    [[nodiscard]] ByteArray mid(size_t index, size_t len = -1) &&;
+    BORON_NODISCARD ByteArray mid(size_t index, size_t len = -1) const &;
+    BORON_NODISCARD ByteArray mid(size_t index, size_t len = -1) &&;
 
-    [[nodiscard]] ByteArray first(size_t n) const &
+    BORON_NODISCARD ByteArray first(size_t n) const &
     {
       verify(0, n);
       return sliced(0, n);
     }
 
-    [[nodiscard]] ByteArray last(size_t n) const &
+    BORON_NODISCARD ByteArray last(size_t n) const &
     {
       verify(0, n);
       return sliced(size() - n, n);
     }
 
-    [[nodiscard]] ByteArray sliced(size_t pos) const &
+    BORON_NODISCARD ByteArray sliced(size_t pos) const &
     {
       verify(pos, 0);
       return sliced(pos, size() - pos);
     }
 
-    [[nodiscard]] ByteArray sliced(size_t pos, size_t n) const &
+    BORON_NODISCARD ByteArray sliced(size_t pos, size_t n) const &
     {
       verify(pos, n);
       return {data_.data() + pos, n};
     }
 
-    [[nodiscard]] ByteArray chopped(size_t len) const &
+    BORON_NODISCARD ByteArray chopped(size_t len) const &
     {
       verify(0, len);
       return sliced(0, size() - len);
     }
 
-    [[nodiscard]] ByteArray first(size_t n) &&
+    BORON_NODISCARD ByteArray first(size_t n) &&
     {
       verify(0, n);
       resize(n); // may detach and allocate memory
       return std::move(*this);
     }
 
-    [[nodiscard]] ByteArray last(size_t n) &&
+    BORON_NODISCARD ByteArray last(size_t n) &&
     {
       verify(0, n);
       return sliced_helper(*this, size() - n, n);
     }
 
-    [[nodiscard]] ByteArray sliced(size_t pos) &&
+    BORON_NODISCARD ByteArray sliced(size_t pos) &&
     {
       verify(pos, 0);
       return sliced_helper(*this, pos, size() - pos);
     }
 
-    [[nodiscard]] ByteArray sliced(size_t pos, size_t n) &&
+    BORON_NODISCARD ByteArray sliced(size_t pos, size_t n) &&
     {
       verify(pos, n);
       return sliced_helper(*this, pos, n);
     }
 
-    [[nodiscard]] ByteArray chopped(size_t len) &&
+    BORON_NODISCARD ByteArray chopped(size_t len) &&
     {
       verify(0, len);
       return std::move(*this).first(size() - len);
     }
 
     // TODO: implement Detail::startsWith and Detail::endsWith
-    [[nodiscard]] bool startsWith(ByteArrayView bv) const;
-    [[nodiscard]] bool startsWith(uint8_t c) const { return size() > 0 && front() == c; }
+    BORON_NODISCARD bool startsWith(ByteArrayView bv) const;
+    BORON_NODISCARD bool startsWith(uint8_t c) const { return size() > 0 && front() == c; }
 
-    [[nodiscard]] bool endsWith(uint8_t c) const { return size() > 0 && back() == c; }
-    [[nodiscard]] bool endsWith(ByteArrayView bv) const;
+    BORON_NODISCARD bool endsWith(uint8_t c) const { return size() > 0 && back() == c; }
+    BORON_NODISCARD bool endsWith(ByteArrayView bv) const;
 
     // TODO: implement isUpper and isLower
     // bool isUpper() const;
     // bool isLower() const;
 
-    // [[nodiscard]] bool isValidUtf8() const noexcept {
+    // BORON_NODISCARD bool isValidUtf8() const noexcept {
     //   return QtPrivate::isValidUtf8(qToByteArrayViewIgnoringNull(*this));
     // }
 
@@ -473,22 +412,22 @@ namespace Boron
       this->data_.resize(size() - n);
     }
 
-    // [[nodiscard]] ByteArray toLower() const & { return toLower_helper(*this); }
-    // [[nodiscard]] ByteArray toLower() && { return toLower_helper(*this); }
-    // [[nodiscard]] ByteArray toUpper() const & { return toUpper_helper(*this); }
-    // [[nodiscard]] ByteArray toUpper() && { return toUpper_helper(*this); }
-    [[nodiscard]] ByteArray trimmed() const & { return trimmed_helper(*this); }
-    [[nodiscard]] ByteArray trimmed() && { return trimmed_helper(*this); }
+    // BORON_NODISCARD ByteArray toLower() const & { return toLower_helper(*this); }
+    // BORON_NODISCARD ByteArray toLower() && { return toLower_helper(*this); }
+    // BORON_NODISCARD ByteArray toUpper() const & { return toUpper_helper(*this); }
+    // BORON_NODISCARD ByteArray toUpper() && { return toUpper_helper(*this); }
+    BORON_NODISCARD ByteArray trimmed() const & { return trimmed_helper(*this); }
+    BORON_NODISCARD ByteArray trimmed() && { return trimmed_helper(*this); }
 
     // TODO: check if these simplify functions are necessary
-    // [[nodiscard]] ByteArray simplified() const & {
+    // BORON_NODISCARD ByteArray simplified() const & {
     //   return simplified_helper(*this);
     // }
-    // [[nodiscard]] ByteArray simplified() && { return simplified_helper(*this);
+    // BORON_NODISCARD ByteArray simplified() && { return simplified_helper(*this);
     // }
-    // [[nodiscard]] ByteArray leftJustified(size_t width, uint8_t fill = ' ',
+    // BORON_NODISCARD ByteArray leftJustified(size_t width, uint8_t fill = ' ',
     // bool truncate = false) const;
-    // [[nodiscard]] ByteArray rightJustified(size_t width, uint8_t fill = ' ',
+    // BORON_NODISCARD ByteArray rightJustified(size_t width, uint8_t fill = ' ',
     // bool truncate = false) const;
 
     ByteArray& prepend(uint8_t c) { return insert(0, ByteArrayView(&c, 1)); }
@@ -597,7 +536,7 @@ namespace Boron
 
     ByteArray& removeAt(size_t pos)
     {
-      return size_t(pos) < size_t(size()) ? remove(pos, 1) : *this;
+      return pos < size() ? remove(pos, 1) : *this;
     }
 
     ByteArray& removeFirst() { return !isEmpty() ? remove(0, 1) : *this; }
@@ -659,53 +598,20 @@ namespace Boron
     ByteArray& operator+=(const ByteArray& a) { return append(a); }
     ByteArray& operator+=(ByteArrayView a) { return append(a); }
 
-    [[nodiscard]] std::vector<ByteArray> split(uint8_t sep) const;
+    BORON_NODISCARD std::vector<ByteArray> split(uint8_t sep) const;
 
-    [[nodiscard]] ByteArray repeated(size_t times) const;
+    BORON_NODISCARD ByteArray repeated(size_t times) const;
 
     // TODO: comparison between ByteArray and const uint8_t *
-    [[nodiscard]] friend inline constexpr auto operator<=>
+    BORON_NODISCARD friend inline constexpr auto operator<=>
     (const ByteArray& lhs, const ByteArray& rhs)
     {
       return ByteArrayView(lhs) <=> ByteArrayView(rhs);
     }
 
-    // TODO: check why clang cannot find operator== and operator!= based on
-    // operator<=> definition
-    [[nodiscard]] friend inline constexpr bool operator==(const ByteArray& lhs,
-                                                          const ByteArray& rhs)
+    BORON_NODISCARD friend inline constexpr auto operator==(const ByteArray& lhs, const ByteArray& rhs)
     {
-      return (lhs <=> rhs) == std::strong_ordering::equal;
-    }
-
-    [[nodiscard]] friend inline constexpr bool operator!=(const ByteArray& lhs,
-                                                          const ByteArray& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::equal;
-    }
-
-    [[nodiscard]] friend inline constexpr bool operator<(const ByteArray& lhs,
-                                                         const ByteArray& rhs)
-    {
-      return (lhs <=> rhs) == std::strong_ordering::less;
-    }
-
-    [[nodiscard]] friend inline constexpr bool operator<=(const ByteArray& lhs,
-                                                          const ByteArray& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::greater;
-    }
-
-    [[nodiscard]] friend inline constexpr bool operator>(const ByteArray& lhs,
-                                                         const ByteArray& rhs)
-    {
-      return (lhs <=> rhs) == std::strong_ordering::greater;
-    }
-
-    [[nodiscard]] friend inline constexpr bool operator>=(const ByteArray& lhs,
-                                                          const ByteArray& rhs)
-    {
-      return (lhs <=> rhs) != std::strong_ordering::less;
+      return ByteArrayView(lhs) == ByteArrayView(rhs);
     }
 
     // Check isEmpty() instead of isNull() for backwards compatibility.
@@ -732,11 +638,11 @@ namespace Boron
     // double toDouble(bool* ok = nullptr) const;
     // ByteArray toBase64(Base64Options options = Base64Encoding) const;
     // TODO: implement Boron::String
-    std::string toHex(char separator = '\0') const;
+    BORON_NODISCARD std::string toHex(char separator = '\0') const;
     std::string toPercentEncoding(const ByteArray& exclude = ByteArray(),
                                   const ByteArray& include = ByteArray(),
                                   uint8_t percent = '%') const;
-    [[nodiscard]] ByteArray percentDecoded(uint8_t percent = '%') const;
+    BORON_NODISCARD ByteArray percentDecoded(uint8_t percent = '%') const;
 
     // inline ByteArray& setNum(short, std::endian endian);
     // inline ByteArray& setNum(unsigned short, std::endian endian);
@@ -765,21 +671,21 @@ namespace Boron
     // TODO: implement setNum for mpz_class
 #endif
     // TODO: setNum for float and double
-    inline ByteArray& setNum(float, uint8_t format = 'g', int precision = 6);
+    ByteArray& setNum(float, uint8_t format = 'g', int precision = 6);
     ByteArray& setNum(double, uint8_t format = 'g', int precision = 6);
     // To re-use existed ByteArray to save memory re-allocations.
     ByteArray& setRawData(const uint8_t* a, size_t n);
 
-    // [[nodiscard]] static ByteArray number(int, int base = 10);
-    // [[nodiscard]] static ByteArray number(unsigned int, int base = 10);
-    // [[nodiscard]] static ByteArray number(long, int base = 10);
-    // [[nodiscard]] static ByteArray number(unsigned long, int base = 10);
-    // [[nodiscard]] static ByteArray number(long long, int base = 10);
-    // [[nodiscard]] static ByteArray number(unsigned long long, int base = 10);
-    // [[nodiscard]] static ByteArray number(double, uint8_t format = 'g',
+    // BORON_NODISCARD static ByteArray number(int, int base = 10);
+    // BORON_NODISCARD static ByteArray number(unsigned int, int base = 10);
+    // BORON_NODISCARD static ByteArray number(long, int base = 10);
+    // BORON_NODISCARD static ByteArray number(unsigned long, int base = 10);
+    // BORON_NODISCARD static ByteArray number(long long, int base = 10);
+    // BORON_NODISCARD static ByteArray number(unsigned long long, int base = 10);
+    // BORON_NODISCARD static ByteArray number(double, uint8_t format = 'g',
     //                                       int precision = 6);
 
-    [[nodiscard]] static ByteArray fromRawData(const uint8_t* data, size_t size)
+    BORON_NODISCARD static ByteArray fromRawData(const uint8_t* data, size_t size)
     {
       return {const_cast<uint8_t*>(data), size};
     }
@@ -787,9 +693,9 @@ namespace Boron
     // TODO: redesign Base64
     // TODO: implement fromHex
     // TODO: String
-    [[nodiscard]] static ByteArray fromHex(const std::string& hexEncoded);
+    BORON_NODISCARD static ByteArray fromHex(const std::string& hexEncoded);
     // TODO: implement fromPercentEncoding
-    [[nodiscard]] static ByteArray
+    BORON_NODISCARD static ByteArray
     fromPercentEncoding(const ByteArray& pctEncoded, uint8_t percent = '%');
 
     // TODO: typedef iterator
@@ -800,28 +706,28 @@ namespace Boron
     typedef std::reverse_iterator<iterator> reverse_iterator;
     typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
     iterator begin() { return data(); }
-    const_iterator begin() const noexcept { return data(); }
-    const_iterator cbegin() const noexcept { return begin(); }
-    const_iterator constBegin() const noexcept { return begin(); }
+    BORON_NODISCARD const_iterator begin() const noexcept { return data(); }
+    BORON_NODISCARD const_iterator cbegin() const noexcept { return begin(); }
+    BORON_NODISCARD const_iterator constBegin() const noexcept { return begin(); }
     iterator end() { return begin() + size(); }
-    const_iterator end() const noexcept { return begin() + size(); }
-    const_iterator cend() const noexcept { return end(); }
-    const_iterator constEnd() const noexcept { return end(); }
+    BORON_NODISCARD const_iterator end() const noexcept { return begin() + size(); }
+    BORON_NODISCARD const_iterator cend() const noexcept { return end(); }
+    BORON_NODISCARD const_iterator constEnd() const noexcept { return end(); }
     reverse_iterator rbegin() { return reverse_iterator(end()); }
     reverse_iterator rend() { return reverse_iterator(begin()); }
 
-    const_reverse_iterator rbegin() const noexcept
+    BORON_NODISCARD const_reverse_iterator rbegin() const noexcept
     {
       return const_reverse_iterator(end());
     }
 
-    const_reverse_iterator rend() const noexcept
+    BORON_NODISCARD const_reverse_iterator rend() const noexcept
     {
       return const_reverse_iterator(begin());
     }
 
-    const_reverse_iterator crbegin() const noexcept { return rbegin(); }
-    const_reverse_iterator crend() const noexcept { return rend(); }
+    BORON_NODISCARD const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+    BORON_NODISCARD const_reverse_iterator crend() const noexcept { return rend(); }
 
     // stl compatibility
     void push_back(uint8_t c) { append(c); }
@@ -835,14 +741,14 @@ namespace Boron
     void shrink_to_fit() { squeeze(); }
     iterator erase(const_iterator first, const_iterator last);
     inline iterator erase(const_iterator it) { return erase(it, it + 1); }
-    inline bool empty() const { return data_.empty(); }
+    BORON_NODISCARD inline bool empty() const { return data_.empty(); }
 
     static ByteArray fromStdString(const std::string& s);
-    std::string toStdString() const;
+    BORON_NODISCARD std::string toStdString() const;
 
-    inline size_t size() const noexcept { return data_.size(); }
-    inline size_t length() const noexcept { return size(); }
-    inline bool isNull() const noexcept { return data_.empty(); }
+    BORON_NODISCARD inline size_t size() const noexcept { return data_.size(); }
+    BORON_NODISCARD inline size_t length() const noexcept { return size(); }
+    BORON_NODISCARD inline bool isNull() const noexcept { return data_.empty(); }
 
   private:
     static ByteArray setNum_helper(unsigned long long, std::endian, size_t);
@@ -860,29 +766,12 @@ namespace Boron
     }
 
     static ByteArray sliced_helper(ByteArray& a, size_t pos, size_t n);
-    // static ByteArray toLower_helper(const ByteArray& a);
-    // static ByteArray toLower_helper(ByteArray& a);
-    // static ByteArray toUpper_helper(const ByteArray& a);
-    // static ByteArray toUpper_helper(ByteArray& a);
     static ByteArray trimmed_helper(const ByteArray& a);
     static ByteArray trimmed_helper(ByteArray& a);
-    // static ByteArray simplified_helper(const ByteArray &a);
-    // static ByteArray simplified_helper(ByteArray &a);
-    // template <typename Predicate> size_t removeIf_helper(Predicate pred) {
-    //   const size_t result = d->eraseIf(pred);
-    //   if (result > 0)
-    //     d.data()[d.size()] = '\0';
-    //   return result;
-    // }
 
     friend class String;
-
-    // template <typename T> friend size_t erase(ByteArray &ba, const T &t);
-    // template <typename Predicate>
-    // friend size_t erase_if(ByteArray &ba, Predicate pred);
   };
 
-  // Q_DECLARE_OPERATORS_FOR_FLAGS(ByteArray::Base64Options)
 
   // TODO: constexpr ByteArray::ByteArray() noexcept {}
   inline ByteArray::ByteArray() noexcept = default;
@@ -1032,7 +921,7 @@ namespace Boron
   //
   inline ByteArray ByteArrayView::toByteArray() const
   {
-    return ByteArray(data(), size());
+    return {data(), size()};
   }
 } // namespace Boron
 

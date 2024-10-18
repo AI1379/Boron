@@ -87,7 +87,7 @@ TEST(ByteArray, Constructor)
   auto ba = Boron::ByteArray(4, 0x01);
   EXPECT_EQ(ba.size(), 4);
   EXPECT_EQ(ba[2], 0x01);
-  EXPECT_DEATH(ba.at(4), ".*");
+  EXPECT_DEATH(auto _ = ba.at(4), ".*");
 }
 
 TEST(ByteArray, ConstructorFromPointer)
@@ -148,7 +148,7 @@ TEST(ByteArray, Resize)
   ba.resize(3);
   EXPECT_EQ(ba.size(), 3);
   EXPECT_EQ(ba[2], 0x01);
-  EXPECT_DEATH(ba.at(3), ".*");
+  EXPECT_DEATH(auto _ = ba.at(3), ".*");
   ba.resize(5, 0x02);
   EXPECT_EQ(ba.size(), 5);
   EXPECT_EQ(ba[4], 0x02);
